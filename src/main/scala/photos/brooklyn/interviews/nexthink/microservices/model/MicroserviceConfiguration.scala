@@ -36,7 +36,7 @@ object MicroserviceConfiguration{
 
   /**
    * constructs a configuration based on the given config file
-   *
+   * TODO need to figure out how to assign false to entryPoint attribute when missing
    * @param configFile
    * @return
    */
