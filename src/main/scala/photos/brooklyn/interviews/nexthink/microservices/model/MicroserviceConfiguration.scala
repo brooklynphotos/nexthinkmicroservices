@@ -4,7 +4,8 @@ import org.json4s.DefaultFormats
 import photos.brooklyn.interviews.nexthink.microservices.DeploymentConfiguration
 import photos.brooklyn.interviews.nexthink.microservices.utils.FileUtils
 
-import scala.util.Try
+import scala.annotation.tailrec
+import scala.util.{Failure, Success, Try}
 
 /**
  * describes the deployment description file
@@ -18,10 +19,31 @@ case class MicroserviceConfiguration(name: String, entryPoint: Boolean, replicas
 
 object MicroserviceConfiguration{
   implicit private val formats = DefaultFormats
+
+  /**
+   * determines if the configuration is valid, for example, that no microservice is repeated
+   * TODO should also ensure there is one entry point and only one
+   * @param depConfig
+   * @return
+   */
+  def isValid(microserviceConfigs: DeploymentConfiguration): Boolean = isValid(microserviceConfigs, Set())
+
+  @tailrec
+  private def isValid(microserviceConfigs: DeploymentConfiguration, existingNames: Set[String]): Boolean = microserviceConfigs match {
+    case head::rest => if(existingNames(head.name)) false else isValid(rest, existingNames + head.name)
+    case Nil => true
+  }
+
   /**
    * constructs a configuration based on the given config file
+   *
    * @param configFile
    * @return
    */
-  def buildConfiguration(configFile: String): Try[DeploymentConfiguration] = FileUtils.readObjectFromFile[DeploymentConfiguration](configFile)
+  def buildConfiguration(configFile: String): Try[DeploymentConfiguration] = {
+    FileUtils.readObjectFromFile[DeploymentConfiguration](configFile) flatMap { depConfig =>
+      // make sure it is valid
+      if(isValid(depConfig)) Success(depConfig) else Failure(new IllegalArgumentException("Deployment configuration is illegal"))
+    }
+  }
 }

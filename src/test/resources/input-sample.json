@@ -1,0 +1,25 @@
+[
+  {
+    "name": "A",
+    "entryPoint": true,
+    "replicas": 1,
+    "dependencies": [
+      "B",
+      "C"
+    ]
+  },
+  {
+    "name": "B",
+    "entryPoint": false,
+    "replicas": 1,
+    "dependencies": [
+      "C"
+    ]
+  },
+  {
+    "name": "C",
+    "entryPoint": false,
+    "replicas": 2,
+    "dependencies": []
+  }
+]
