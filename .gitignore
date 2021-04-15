@@ -4,5 +4,4 @@
 .idea
 .bsp
 
-*-build/
 **/target
