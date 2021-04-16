@@ -15,7 +15,7 @@ import scala.util.{Failure, Success, Try}
  * @param replicas
  * @param dependencies
  */
-case class MicroserviceConfiguration(name: String, entryPoint: Boolean, replicas: Int, dependencies: Set[String])
+final case class MicroserviceConfiguration(name: String, entryPoint: Boolean, replicas: Int, dependencies: Set[String])
 
 object MicroserviceConfiguration{
   implicit private val formats = DefaultFormats

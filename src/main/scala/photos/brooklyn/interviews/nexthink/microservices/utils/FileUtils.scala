@@ -49,7 +49,7 @@ object FileUtils extends AppLogger {
    * @return
    */
   def readObjectFromFile[A](jsonFile: String)(implicit formats: Formats, mf: Manifest[A]): Try[A] =
-    fileToString(jsonFile).map(read[A]) recoverWith {
+    fileToString(jsonFile).recover(_=>jsonFile).map(read[A]) recoverWith {
       case t => Failure(new IllegalArgumentException(s"JsonFile input not good: $jsonFile", t))
     }
 
