@@ -1,27 +1,42 @@
 package photos.brooklyn.interviews.nexthink.microservices.deployment
+
 import photos.brooklyn.interviews.nexthink.microservices.model.{Deployment, MicroserviceConfiguration}
-import photos.brooklyn.interviews.nexthink.microservices.{DeploymentConfiguration, MicroserviceReplicates}
+import photos.brooklyn.interviews.nexthink.microservices.{DeploymentConfiguration, MicroserviceReplicas}
 
-class BasicMicroserviceDeploymentService extends MicroserviceDeploymentService {
+import scala.util.{Failure, Success, Try}
 
-  def deployMicroservice(configuration: MicroserviceConfiguration): MicroserviceReplicates = ???
+class BasicMicroserviceDeploymentService(deployer: Deployer) extends MicroserviceDeploymentService {
 
-  override def deploy(deploymentConfigFile: String): Deployment = {
-    // if there is an error it will get thrown here
-    val deploymentConfig = MicroserviceConfiguration.buildConfiguration(deploymentConfigFile).get
-    val startTime = System.currentTimeMillis()
-    val entryMicroservice = deploymentConfig.filter(x=>x.entryPoint) match {
-      case x :: Nil => x.name
-      case Nil => throw new IllegalArgumentException(s"Found no entry point in the deploy file $deploymentConfig")
-      case moreThanOne => throw new IllegalArgumentException(s"Found ${moreThanOne.size} entry points! Can only have one")
+  /**
+   * deploys in accordance to the deployment sequence. This is kept private so no outside caller can provide a topologically unordered sequence
+   *
+   * @param deploymentSequence the stack where the last element is the first to deploy as it depends on nothing
+   * @return
+   */
+  private def deploy(deploymentSequence: DeploymentConfiguration): Try[Map[String, MicroserviceReplicas]] =
+    deploymentSequence.foldRight(Try(Map.empty[String, MicroserviceReplicas]))((config, prevVal) =>
+      prevVal
+        .flatMap(prevMap => deploy(config, prevMap)
+          .map(newMap => prevMap + (config.name -> newMap)
+          )
+        )
+    )
+
+  private def deploy(config: MicroserviceConfiguration, prevMap: Map[String, MicroserviceReplicas]): Try[MicroserviceReplicas] =
+    deployer.deployMicroservice(config).map(_.map(di=>deployer.buildMicroservice(di, prevMap)).toSet)
+
+  override def deploy(deploymentConfigFile: String): Try[Deployment] = {
+    for {
+      deploymentConfig <- MicroserviceConfiguration.buildConfiguration(deploymentConfigFile)
+      scheduledTasks <- TaskScheduler.createOrderedTasks(deploymentConfig)
+    } yield {
+      val startTime = System.currentTimeMillis()
+      deploy(deploymentConfig) match {
+        case Success(microservices) => Deployment(true, startTime, scheduledTasks.head.name, microservices)
+        case Failure(exception: Exception) => Deployment(false, startTime, scheduledTasks.head.name, Map.empty, error = Some(exception))
+      }
     }
-    val microservices = deploy(deploymentConfig)
-
-    val endTime = System.currentTimeMillis()
-    Deployment(true, startTime, endTime, entryMicroservice, microservices)
   }
-
-  private def deploy(deploymentConfig: DeploymentConfiguration): Map[String, MicroserviceReplicates] = ???
 
   /**
    * determines if the microservice tree contains cyclic reference
@@ -29,7 +44,7 @@ class BasicMicroserviceDeploymentService extends MicroserviceDeploymentService {
    * @param deploymentDescription the entry point microservice
    * @return true if there is cyclic reference
    */
-  override def isCyclic(deploymentDescription: DeploymentConfiguration): Boolean = ???
+  override def isCyclic(deploymentDescription: DeploymentConfiguration): Boolean = TaskScheduler.createOrderedTasks(deploymentDescription).isFailure
 
   /**
    * determines if the entire deployment is healthy
@@ -37,5 +52,7 @@ class BasicMicroserviceDeploymentService extends MicroserviceDeploymentService {
    * @param deployment
    * @return
    */
-  override def isHealthy(deployment: Deployment): Boolean = ???
+  override def isHealthy(deployment: Deployment): Boolean = deployment.microservices.forall {
+    case (_, replicas) => replicas.forall(m => m.isHealthy)
+  }
 }

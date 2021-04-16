@@ -1,7 +1,9 @@
 package photos.brooklyn.interviews.nexthink.microservices.deployment
 
 import photos.brooklyn.interviews.nexthink.microservices.DeploymentConfiguration
-import photos.brooklyn.interviews.nexthink.microservices.model.{Deployment, MicroserviceConfiguration}
+import photos.brooklyn.interviews.nexthink.microservices.model.Deployment
+
+import scala.util.Try
 
 /**
  * Basic contract to describe functionalities for deploying from a deployment description
@@ -11,9 +13,9 @@ trait MicroserviceDeploymentService {
   /**
    * launches microservices stated in the input deployment file
    *
-   * @return the microservices launched
+   * @return the microservices launched or the exception that caused it to abort
    */
-  def deploy(deploymentConfig: String): Deployment
+  def deploy(deploymentConfig: String): Try[Deployment]
 
   /**
    * determines if the microservice tree contains cyclic reference

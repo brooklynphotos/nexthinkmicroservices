@@ -1,8 +1,8 @@
 package photos.brooklyn.interviews.nexthink.microservices.model
 
-import photos.brooklyn.interviews.nexthink.microservices.MicroserviceReplicates
+import photos.brooklyn.interviews.nexthink.microservices.MicroserviceReplicas
 
 /**
  * describes the result of a deployment
  */
-case class Deployment(isSuccessful: Boolean,startTime: Long,deploymentCompletionTime: Long,entryMicroservice: String,microservices: Map[String, MicroserviceReplicates])
+case class Deployment(isSuccessful: Boolean, startTime: Long, entryMicroservice: String, microservices: Map[String, MicroserviceReplicas], deploymentCompletionTime: Long = System.currentTimeMillis(), error: Option[Exception] = None)

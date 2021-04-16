@@ -3,6 +3,8 @@ package photos.brooklyn.interviews.nexthink.microservices.deployment
 import photos.brooklyn.interviews.nexthink.microservices.DeploymentConfiguration
 import photos.brooklyn.interviews.nexthink.microservices.model.MicroserviceConfiguration
 
+import scala.util.Try
+
 /**
  * general functionality for scheduling tasks from a graph
  */
@@ -24,7 +26,7 @@ object TaskScheduler {
    * @param deploymentConfig
    * @return
    */
-  def createOrderedTasks(deploymentConfig: DeploymentConfiguration) = {
+  def createOrderedTasks(deploymentConfig: DeploymentConfiguration): Try[DeploymentConfiguration] = Try {
     val entryMicroservice = findEntryPoint(deploymentConfig)
     val configMap = deploymentConfig.map(c => c.name -> c).toMap
     // now that we have an entry point and a graph, we can build a topological ordering

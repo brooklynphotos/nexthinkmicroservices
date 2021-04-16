@@ -7,7 +7,7 @@ trait Microservice {
 
   def isEntryPoint: Boolean
 
-  def dependencies: List[Microservice]
+  def dependencies: Set[Microservice]
 
   def isHealthy: Boolean
 }

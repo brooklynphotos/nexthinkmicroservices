@@ -5,6 +5,8 @@ import org.scalatest.matchers.must
 import photos.brooklyn.interviews.nexthink.microservices.deployment.TaskScheduler._
 import photos.brooklyn.interviews.nexthink.microservices.model.MicroserviceConfiguration
 
+import scala.util.Failure
+
 class TaskSchedulerSpec extends AnyFlatSpec with must.Matchers {
 
   behavior of "findEntryPoint"
@@ -36,7 +38,7 @@ class TaskSchedulerSpec extends AnyFlatSpec with must.Matchers {
     val B = MicroserviceConfiguration("B", false, 2, Set("D"))
     val C = MicroserviceConfiguration("C", false, 2, Set("D"))
     val D = MicroserviceConfiguration("D", false, 2, Set.empty)
-    val taskList = createOrderedTasks(List(B, entry, C, D))
+    val taskList = createOrderedTasks(List(B, entry, C, D)).get
     taskList.head mustBe entry
     taskList.last mustBe D
     taskList.size mustBe 4
@@ -47,10 +49,10 @@ class TaskSchedulerSpec extends AnyFlatSpec with must.Matchers {
     val B = MicroserviceConfiguration("B", false, 2, Set("C"))
     val C = MicroserviceConfiguration("C", false, 2, Set("D"))
     val D = MicroserviceConfiguration("D", false, 2, Set("A"))
-    val caught = intercept[CycleDetectedException] {
-      createOrderedTasks(List(B, entry, C, D))
+    createOrderedTasks(List(B, entry, C, D)) match {
+      case Failure(caught: CycleDetectedException) => caught.visited mustBe "A"
+      case _ => fail("Did not get the exception expected")
     }
-    caught.visited mustBe "A"
   }
 
   behavior of "dfs with DAG"
