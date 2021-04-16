@@ -32,8 +32,8 @@ class BasicMicroserviceDeploymentService(deployer: Deployer) extends Microservic
     } yield {
       val startTime = System.currentTimeMillis()
       deploy(deploymentConfig) match {
-        case Success(microservices) => Deployment(true, startTime, scheduledTasks.head.name, microservices)
-        case Failure(exception: Exception) => Deployment(false, startTime, scheduledTasks.head.name, Map.empty, error = Some(exception))
+        case Success(microservices) => Deployment(true, startTime, scheduledTasks.head.name, microservices, scheduledTasks.map(_.name))
+        case Failure(exception: Exception) => Deployment(false, startTime, scheduledTasks.head.name, Map.empty, Nil, error = Some(exception))
       }
     }
   }

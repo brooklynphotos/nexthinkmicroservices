@@ -43,7 +43,7 @@ class BasicMicroserviceDeploymentServiceSpec extends AnyFlatSpec with must.Match
     val deployment = Deployment(true, 1L, "A", Map(
       "A" -> AList,
       "B" -> BList
-    ), deploymentCompletionTime = 2L)
+    ), List("B", "A"), deploymentCompletionTime = 2L)
     service.isHealthy(deployment) mustBe true
   }
 
@@ -53,7 +53,7 @@ class BasicMicroserviceDeploymentServiceSpec extends AnyFlatSpec with must.Match
     val deployment = Deployment(true, 1L, "A", Map(
       "A" -> AList,
       "B" -> BList
-    ), deploymentCompletionTime = 2L)
+    ), List("B", "A"), deploymentCompletionTime = 2L)
     service.isHealthy(deployment) mustBe false
   }
 
