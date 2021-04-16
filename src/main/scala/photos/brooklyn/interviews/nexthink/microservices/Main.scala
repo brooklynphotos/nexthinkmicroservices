@@ -14,7 +14,10 @@ object Main {
     println(deployment.isSuccessful)
     println("Deployed in this order:")
     deployment.order foreach {
-      name => println(deployment.microservices(name).mkString(","))
+      name => {
+        println(name)
+        println(s"""\t${deployment.microservices(name).map(_.id).mkString("\n\t")}""")
+      }
     }
     print(s"Took ${deployment.deploymentCompletionTime - deployment.startTime} ms")
   }

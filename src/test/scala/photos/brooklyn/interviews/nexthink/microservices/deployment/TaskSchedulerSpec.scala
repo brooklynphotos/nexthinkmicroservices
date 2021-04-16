@@ -56,6 +56,19 @@ class TaskSchedulerSpec extends AnyFlatSpec with must.Matchers {
   }
 
   behavior of "dfs with DAG"
+  it should "return ordered tasks when given triangle DAG" in {
+    val entry = MicroserviceConfiguration("A", true, 2, Set("B", "C"))
+    val B = MicroserviceConfiguration("B", false, 2, Set("C"))
+    val C = MicroserviceConfiguration("C", false, 2, Set.empty)
+    val configMap = Map(
+      "A" -> entry,
+      "B" -> B,
+      "C" -> C
+    )
+    val taskList = dfs(configMap, entry)
+    taskList.topo.map(_.name) mustBe List("A", "B", "C")
+  }
+
   it should "return ordered tasks when given diamond DAG" in {
     val entry = MicroserviceConfiguration("A", true, 2, Set("B", "C"))
     val B = MicroserviceConfiguration("B", false, 2, Set("D"))

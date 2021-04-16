@@ -15,7 +15,7 @@ object TaskScheduler {
     val stackVisitedAfterNode = stackVisited + node.name
     val dependencyCollected = newDependencies.foldLeft(accumulator)((accum, e) => {
       if (stackVisited(e)) throw CycleDetectedException(e)
-      dfs(configMap, configMap(e), accum, stackVisitedAfterNode + e)
+      if(accum.visited(e)) accum else dfs(configMap, configMap(e), accum, stackVisitedAfterNode + e)
     })
     Accumulator(node :: dependencyCollected.topo, dependencyCollected.visited + node.name)
   }
