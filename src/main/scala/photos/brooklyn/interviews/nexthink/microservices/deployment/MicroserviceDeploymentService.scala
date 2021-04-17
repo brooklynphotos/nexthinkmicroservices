@@ -1,6 +1,5 @@
 package photos.brooklyn.interviews.nexthink.microservices.deployment
 
-import photos.brooklyn.interviews.nexthink.microservices.DeploymentConfiguration
 import photos.brooklyn.interviews.nexthink.microservices.model.Deployment
 
 import scala.util.Try
@@ -12,7 +11,7 @@ trait MicroserviceDeploymentService {
 
   /**
    * launches microservices stated in the input deployment file
-   *
+   * @param deploymentConfig the entry point microservice
    * @return the microservices launched or the exception that caused it to abort
    */
   def deploy(deploymentConfig: String): Try[Deployment]
@@ -20,10 +19,10 @@ trait MicroserviceDeploymentService {
   /**
    * determines if the microservice tree contains cyclic reference
    *
-   * @param deploymentDescription the entry point microservice
+   * @param deploymentConfig the entry point microservice
    * @return true if there is cyclic reference
    */
-  def isCyclic(deploymentDescription: DeploymentConfiguration): Boolean
+  def isCyclic(deploymentConfig: String): Try[Boolean]
 
   /**
    * determines if the entire deployment is healthy

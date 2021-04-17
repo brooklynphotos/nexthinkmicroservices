@@ -1,11 +1,14 @@
 package photos.brooklyn.interviews.nexthink.microservices.deployment
 
+import org.json4s.DefaultFormats
+import org.json4s.jackson.Serialization.write
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must
 import photos.brooklyn.interviews.nexthink.microservices.Microservice
 import photos.brooklyn.interviews.nexthink.microservices.model.{Deployment, MicroserviceConfiguration}
 
 class BasicMicroserviceDeploymentServiceSpec extends AnyFlatSpec with must.Matchers {
+  implicit private val json4sFormats = DefaultFormats
 
   private val service = new BasicMicroserviceDeploymentService(new NoOpDeployer())
 
@@ -16,24 +19,26 @@ class BasicMicroserviceDeploymentServiceSpec extends AnyFlatSpec with must.Match
       MicroserviceConfiguration("A", true, 2, Set("B")),
       MicroserviceConfiguration("B", false, 2, Set("A"))
     )
-    service.isCyclic(deploymentDescription) mustBe true
+    service.isCyclic(deploymentDescription).get mustBe true
   }
 
   it should "return false given there is no cycle" in {
     val deploymentDescription = List(
       MicroserviceConfiguration("A", true, 2, Set("B")),
-      MicroserviceConfiguration("B", false, 2, Set("C"))
+      MicroserviceConfiguration("B", false, 2, Set("C")),
+      MicroserviceConfiguration("C", false, 2, Set.empty)
     )
-    service.isCyclic(deploymentDescription) mustBe true
+    service.isCyclic(deploymentDescription).get mustBe false
   }
 
   it should "return false given there a more complex graph with no cycle" in {
     val deploymentDescription = List(
       MicroserviceConfiguration("A", true, 2, Set("B", "D")),
       MicroserviceConfiguration("B", false, 2, Set("C")),
-      MicroserviceConfiguration("C", false, 2, Set("D"))
+      MicroserviceConfiguration("C", false, 2, Set("D")),
+      MicroserviceConfiguration("D", false, 2, Set.empty)
     )
-    service.isCyclic(deploymentDescription) mustBe true
+    service.isCyclic(deploymentDescription).get mustBe false
   }
 
   behavior of "isHealthy"
@@ -59,10 +64,25 @@ class BasicMicroserviceDeploymentServiceSpec extends AnyFlatSpec with must.Match
 
   behavior of "deploy"
   it should "return a Deploy instance when no errors were found" in {
+    val deploymentDescription = List(
+      MicroserviceConfiguration("A", true, 2, Set("B", "D")),
+      MicroserviceConfiguration("B", false, 2, Set("C")),
+      MicroserviceConfiguration("C", false, 2, Set("D")),
+      MicroserviceConfiguration("D", false, 2, Set.empty)
+    )
+    val res = service.deploy(write(deploymentDescription))
+
+    res.isSuccess mustBe true
+    res.get.isSuccessful mustBe true
 
   }
 
-  it should "throw an error if the configuration is not correct" in {
+  it should "return an error if the configuration is not correct" in {
+    val deploymentDescription = List(
+      MicroserviceConfiguration("A", true, 2, Set("B")),
+      MicroserviceConfiguration("B", false, 2, Set("A"))
+    )
+    service.deploy(write(deploymentDescription)).isFailure mustBe true
 
   }
 

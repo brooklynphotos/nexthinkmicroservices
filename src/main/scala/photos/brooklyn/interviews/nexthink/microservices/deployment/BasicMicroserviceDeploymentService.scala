@@ -1,5 +1,6 @@
 package photos.brooklyn.interviews.nexthink.microservices.deployment
 
+import photos.brooklyn.interviews.nexthink.microservices.deployment.TaskScheduler.CycleDetectedException
 import photos.brooklyn.interviews.nexthink.microservices.model.{Deployment, MicroserviceConfiguration}
 import photos.brooklyn.interviews.nexthink.microservices.{DeploymentConfiguration, MicroserviceReplicas}
 
@@ -23,7 +24,7 @@ class BasicMicroserviceDeploymentService(deployer: Deployer) extends Microservic
     )
 
   private def deploy(config: MicroserviceConfiguration, prevMap: Map[String, MicroserviceReplicas]): Try[MicroserviceReplicas] =
-    deployer.deployMicroservice(config).map(_.map(di=>deployer.buildMicroservice(di, prevMap)).toSet)
+    deployer.deployMicroservice(config).map(_.map(di => deployer.buildMicroservice(di, prevMap)).toSet)
 
   override def deploy(deploymentConfigFile: String): Try[Deployment] = {
     for {
@@ -38,13 +39,14 @@ class BasicMicroserviceDeploymentService(deployer: Deployer) extends Microservic
     }
   }
 
-  /**
-   * determines if the microservice tree contains cyclic reference
-   *
-   * @param deploymentDescription the entry point microservice
-   * @return true if there is cyclic reference
-   */
-  override def isCyclic(deploymentDescription: DeploymentConfiguration): Boolean = TaskScheduler.createOrderedTasks(deploymentDescription).isFailure
+  override def isCyclic(deploymentConfig: String): Try[Boolean] = MicroserviceConfiguration.buildConfiguration(deploymentConfig).flatMap(isCyclic)
+
+  def isCyclic(deploymentDescription: DeploymentConfiguration): Try[Boolean] =
+    TaskScheduler.createOrderedTasks(deploymentDescription) match {
+      case Success(_) => Success(false)
+      case Failure(_: CycleDetectedException) => Success(true)
+      case Failure(t: Throwable) => Failure(t)
+    }
 
   /**
    * determines if the entire deployment is healthy
