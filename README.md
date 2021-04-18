@@ -1,5 +1,7 @@
 # Microservices Exercise for Nexthink Interview
 ## How to Run
+### Packaging for run
+After running `sbt stage` there should be executable scripts for both the main and the REST service under `target/universal/scripts/bin/`
 ### For a basic sanity check, run the `Main`
 `photos.brooklyn.interviews.nexthink.microservices.Main deploy input-sample.json`
 `photos.brooklyn.interviews.nexthink.microservices.Main cyclic input-sample.json`
