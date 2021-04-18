@@ -25,12 +25,34 @@ object Main {
   private def printProblem(exception: Throwable) = exception.printStackTrace()
 
   def main(args: Array[String]): Unit = {
-    val inputJson = args(0)
+    val command = args(0)
+    val inputJson = args(1)
     val deploymentService: MicroserviceDeploymentService = new BasicMicroserviceDeploymentService(new NoOpDeployer())
+    commands(command)(deploymentService, inputJson)
+  }
+
+  def deploy(deploymentService: MicroserviceDeploymentService, inputJson: String) =
     deploymentService.deploy(inputJson) match {
       case Success(value) => printResult(value)
       case Failure(exception) => printProblem(exception)
     }
+
+  def cyclic(deploymentService: MicroserviceDeploymentService, inputJson: String) =
+    deploymentService.isCyclic(inputJson) match {
+      case Success(value) => println(value)
+      case Failure(exception) => printProblem(exception)
+    }
+
+  def health(deploymentService: MicroserviceDeploymentService, inputJson: String) = {
+    deploymentService.deploy(inputJson) match {
+      case Success(dep) => println(deploymentService.isHealthy(dep))
+      case Failure(exception) => printProblem(exception)
+    }
   }
 
+  private val commands = Map(
+    "deploy" -> deploy _,
+    "cyclic" -> cyclic _,
+    "health" -> health _,
+  )
 }

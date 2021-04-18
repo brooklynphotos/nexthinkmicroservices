@@ -32,6 +32,18 @@ class TaskSchedulerSpec extends AnyFlatSpec with must.Matchers {
     }
   }
 
+  it should "throw exception given more than one entry point" in {
+    val depConfig = List(
+      MicroserviceConfiguration("A", true, 2, Set("B")),
+      MicroserviceConfiguration("D", true, 2, Set("B")),
+      MicroserviceConfiguration("B", false, 2, Set("C")),
+      MicroserviceConfiguration("C", false, 2, Set.empty)
+    )
+    an[IllegalArgumentException] must be thrownBy {
+      findEntryPoint(depConfig)
+    }
+  }
+
   behavior of "createOrderedTasks"
   it should "return ordered tasks when given DAG" in {
     val entry = MicroserviceConfiguration("A", true, 2, Set("B", "C"))
