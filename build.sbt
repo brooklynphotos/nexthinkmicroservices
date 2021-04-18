@@ -1,3 +1,5 @@
+enablePlugins(JavaAppPackaging)
+
 scalaVersion := "2.13.3"
 name := "microservices"
 organization := "photos.brooklyn"

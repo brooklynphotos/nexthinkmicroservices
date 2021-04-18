@@ -20,3 +20,8 @@ The front end project can be found here: https://github.com/brooklynphotos/nexth
 * Did not do stress testing to see if the DFS really runs on linear time
 * Should use something other than a NoOp microservice deployer
 * Should use `Future` instead of just a synchronous `Try`
+## Docker
+Docker runs very slowly on my laptop, to the point of halting all programs. But it shouldn't be difficult to create a Docker image using `sbt  docker:stage`, as detailed here:
+https://www.freecodecamp.org/news/how-to-dockerise-a-scala-and-akka-http-application-the-easy-way-23310fc880fa/
+
+Instead of Docker compose, I would consider just creating a kubernetes cluster with a pod containing a container running this Docker image and another container running the front end. 
